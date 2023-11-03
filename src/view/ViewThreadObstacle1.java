@@ -1,11 +1,11 @@
 package view;
 
-public class ViewThreadObstacle extends Thread {
+public class ViewThreadObstacle1 extends Thread {
 	
 	private ViewSnakePanel panel;
 	private boolean state;
 
-	public ViewThreadObstacle(ViewSnakePanel panel) {
+	public ViewThreadObstacle1(ViewSnakePanel panel) {
 		this.panel = panel;
 		state = true;
 	}
@@ -13,7 +13,7 @@ public class ViewThreadObstacle extends Thread {
 	@Override
 	public void run() {
 		while (state) {
-			panel.generateObstacle();
+			panel.generateObstacle1();
 			panel.repaint();
 			try {
 				Thread.sleep(8000);
