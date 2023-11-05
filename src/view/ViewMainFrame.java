@@ -1,25 +1,34 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-//rgba(238,135,43,255) naranja
-//183,76,236,255 morado
 
 public class ViewMainFrame extends JFrame {
 
 	private ViewBackgroudPanel viewBackgroudPanel;
-	private ViewGameInformationPanel viewGameInformationPanel;
 	private ViewSnakePanel viewSnakePanel;
+	private String playerName;
+	private String difficulty;
+	private JLabel scorePlayer;
 
-	public ViewMainFrame() {
+	public ViewMainFrame(String playerName, String difficulty) {
+		
+		scorePlayer = new JLabel("Puntaje: 0");
 		this.setBounds(10, 10, 650, 700);
-		viewSnakePanel = new ViewSnakePanel(680, 30);
+		viewSnakePanel = new ViewSnakePanel(680, 30, this, playerName, difficulty);
 		viewBackgroudPanel = new ViewBackgroudPanel(680, 30);
-		viewGameInformationPanel = new ViewGameInformationPanel();
+		this.playerName = playerName;
+		this.difficulty = difficulty;
 		initComponents();
 		addKeyListener(new KeyAdapter() {
 			@Override
@@ -67,9 +76,25 @@ public class ViewMainFrame extends JFrame {
 		this.setLayout(new BorderLayout());
 		this.add(viewSnakePanel, BorderLayout.CENTER);
 		this.add(viewBackgroudPanel, BorderLayout.CENTER);
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout());
+		panel.setBounds(10, 10, 680, 100);
+		JLabel playerNameLabel = new JLabel("Jugador: "+playerName);
+		panel.add(playerNameLabel);
+		JLabel difficultyLabel = new JLabel("Dificultad: "+difficulty);
+		panel.add(scorePlayer);
+		panel.add(difficultyLabel);
+		panel.setBackground(new Color(96,64,150,255));
+		add(panel, BorderLayout.SOUTH);
 	}
 
-	public static void main(String[] args) {
-		new ViewMainFrame();
+	public JLabel getScorePlayer() {
+		return scorePlayer;
 	}
+
+	public void setScorePlayer(JLabel scorePlayer) {
+		this.scorePlayer = scorePlayer;
+	}
+	
+	
 }

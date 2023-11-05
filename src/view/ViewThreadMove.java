@@ -6,8 +6,9 @@ public class ViewThreadMove implements Runnable{
 	private boolean state = true;
 	private int time;
 	
-	public ViewThreadMove(ViewSnakePanel panel) {
+	public ViewThreadMove(ViewSnakePanel panel, int time) {
 		this.panel = panel;
+		this.time = time;
 	}
 
 	@Override
@@ -16,7 +17,7 @@ public class ViewThreadMove implements Runnable{
 			panel.move();
 			panel.repaint();
 			try {
-				Thread.sleep(100-panel.getScore()*2);
+				Thread.sleep(time-panel.getScore()*2);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

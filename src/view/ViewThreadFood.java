@@ -4,9 +4,11 @@ public class ViewThreadFood extends Thread{
 	
 	private ViewSnakePanel panel;
 	private boolean state;
+	private int time;
 	
-	public ViewThreadFood(ViewSnakePanel panel) {
+	public ViewThreadFood(ViewSnakePanel panel, int time) {
 		this.panel = panel;
+		this.time = time;
 		state = true;
 	}
 	
@@ -17,7 +19,7 @@ public class ViewThreadFood extends Thread{
 			panel.repaint();
 			
 			try {
-				Thread.sleep(6000);
+				Thread.sleep(time);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

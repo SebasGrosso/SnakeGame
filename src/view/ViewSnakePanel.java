@@ -3,27 +3,39 @@ package view;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class ViewSnakePanel extends JPanel {
 
-	private int changeColor = 0;;
-	private Color snakeColor = new Color(216, changeColor, 255, 255);
+	private int changeColor;
 	private int quantity;
 	private int size;
 	private int score;
+	private int[] food;
 	private List<int[]> snake;
 	private List<int[]> obstacle1;
 	private List<int[]> obstacle2;
 	private List<int[]> obstacle3;
-	private int[] food;
 	private boolean state;
+	private String playerName;
+	private String difficulty;
+	private int timeFood;
+	private int timeMove;
+	private int timeObstacles;
 	private String direction;
 	private String proxDirection;
+	private ViewMainFrame frame;
 	private ViewThreadMove moveThread;
 	private Thread threadMove;
 	private ViewThreadFood threadFood;
@@ -32,11 +44,15 @@ public class ViewSnakePanel extends JPanel {
 	private ViewThreadObstacle2 threadObstacle2;
 	private ViewThreadObstacle3 threadObstacle3;
 
-	public ViewSnakePanel(int maxSize, int quantity) {
+	public ViewSnakePanel(int maxSize, int quantity, ViewMainFrame frame, String playerName, String difficulty) {
 		this.setOpaque(false);
 		this.setBounds(10, 10, 700, 700);
 		this.quantity = quantity;
 		this.size = maxSize / quantity;
+		this.frame = frame;
+		this.playerName = playerName;
+		this.difficulty = difficulty;
+		chooseDifficulty();
 		initializeVariables();
 		createSnake();
 		generateFood();
@@ -45,12 +61,12 @@ public class ViewSnakePanel extends JPanel {
 	}
 
 	public void startThreads() {
-		moveThread = new ViewThreadMove(this);
+		moveThread = new ViewThreadMove(this, timeMove);
 		threadMove = new Thread(moveThread);
-		threadFood = new ViewThreadFood(this);
-		threadObstacle3 = new ViewThreadObstacle3(this);
-		threadObstacle2 = new ViewThreadObstacle2(this);
-		threadObstacle1 = new ViewThreadObstacle1(this);
+		threadFood = new ViewThreadFood(this, timeFood);
+		threadObstacle3 = new ViewThreadObstacle3(this, timeObstacles);
+		threadObstacle2 = new ViewThreadObstacle2(this, timeObstacles);
+		threadObstacle1 = new ViewThreadObstacle1(this, timeObstacles);
 		threadColor = new ViewThreadColor(this);
 		threadColor.start();
 		threadObstacle3.start();
@@ -69,12 +85,6 @@ public class ViewSnakePanel extends JPanel {
 		direction = "right";
 		proxDirection = "right";
 		state = true;
-		threadMove = new Thread(moveThread);
-		moveThread = new ViewThreadMove(this);
-		threadFood = new ViewThreadFood(this);
-		threadObstacle3 = new ViewThreadObstacle3(this);
-		threadObstacle2 = new ViewThreadObstacle2(this);
-		threadObstacle1 = new ViewThreadObstacle1(this);
 	}
 
 	public void createSnake() {
@@ -89,17 +99,14 @@ public class ViewSnakePanel extends JPanel {
 
 	public void paint(Graphics g) {
 		super.paint(g);
-		g.setColor(snakeColor);
+		g.setColor(new Color(216, changeColor, 255, 255));
 		for (int i = 0; i < snake.size(); i++) {
-			if (i == snake.size()-1) {
-				g.setColor(new Color(74,120,239,255));
-			}
 			g.setColor(new Color(216, changeColor, 255, 255));
 			g.fillRect(snake.get(i)[0] * size, snake.get(i)[1] * size, size - 1, size - 1);
 		}
 		Graphics2D g2d = (Graphics2D) g;
-        g2d.setColor(new Color(231,71,29,255));
-		g2d.fillOval(food[0] * size, food[1] * size, (int) (size + score*0.2), (int) (size + score*0.2));
+		g2d.setColor(new Color(231, 71, 29, 255));
+		g2d.fillOval(food[0] * size, food[1] * size, (int) (size + score * 0.3), (int) (size + score * 0.3));
 
 		g.setColor(new Color(52, 27, 69, 255));
 		for (int i = 0; i < obstacle1.size(); i++) {
@@ -170,16 +177,20 @@ public class ViewSnakePanel extends JPanel {
 			threadObstacle1.stopThread();
 			threadObstacle2.stopThread();
 			threadObstacle3.stopThread();
-			JOptionPane.showMessageDialog(this, "Has perdido");
+			JOptionPane.showMessageDialog(this, "Te has chocado, el juego ha terminado:(\n"+playerName+" tu puntaje ha sido de "+score+" naranjas.");
+			ViewMainMenu menu = new ViewMainMenu();
+			menu.getNameField().setText(playerName);
+			frame.dispose();
+			WriteHistory();
 
 		} else {
 			if (newPart[0] == food[0] && newPart[1] == food[1]) {
 				snake.add(newPart);
 				generateFood();
-				if(score > 10) {
+				if (score > 10) {
 					score++;
 				}
-				if(score > 20) {
+				if (score > 20) {
 					score++;
 				}
 				score++;
@@ -192,17 +203,17 @@ public class ViewSnakePanel extends JPanel {
 
 	public void generateFood() {
 		boolean exist = false;
-		int a = (int) (Math.random() * quantity);
-		int b = (int) (Math.random() * quantity);
+		int x = (int) (Math.random() * quantity);
+		int y = (int) (Math.random() * quantity);
 		for (int i = 0; i < snake.size(); i++) {
-			if (snake.get(i)[0] == a && snake.get(i)[1] == b) {
+			if (snake.get(i)[0] == x && snake.get(i)[1] == y) {
 				exist = true;
 				break;
 			}
 		}
 		if (!exist) {
-			food[0] = a;
-			food[1] = b;
+			food[0] = x;
+			food[1] = y;
 		}
 	}
 
@@ -314,8 +325,8 @@ public class ViewSnakePanel extends JPanel {
 			@Override
 			public void run() {
 				while (state) {
-					System.out.println(score);
 					try {
+						frame.getScorePlayer().setText("Puntaje: "+score);;
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -325,7 +336,47 @@ public class ViewSnakePanel extends JPanel {
 		});
 		threadScore.start();
 	}
-	
+
+	public void chooseDifficulty() {
+		Properties properties = new Properties();
+		InputStream input = null;
+		try {
+			input = new FileInputStream("config.properties");
+			properties.load(input);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		switch (difficulty) {
+		case "Fácil":
+			timeFood = Integer.parseInt(properties.getProperty("modeEasyTimeFood"));
+			timeMove = Integer.parseInt(properties.getProperty("modeEasyTimeMove"));
+			timeObstacles = Integer.parseInt(properties.getProperty("modeEasyTimeObstacles"));
+			break;
+		case "Medio":
+			timeFood = Integer.parseInt(properties.getProperty("modeMediumTimeFood"));
+			timeMove = Integer.parseInt(properties.getProperty("modeMediumTimeMove"));
+			timeObstacles = Integer.parseInt(properties.getProperty("modeMediumTimeObstacles"));
+			break;
+		case "Difícil":
+			timeFood = Integer.parseInt(properties.getProperty("modeDifficultTimeFood"));
+			timeMove = Integer.parseInt(properties.getProperty("modeDifficultTimeMove"));
+			timeObstacles = Integer.parseInt(properties.getProperty("modeDifficultTimeObstacles"));
+			break;
+		}
+	}
+
+	public void WriteHistory() {
+		LocalDateTime localDateTime = LocalDateTime.now();
+
+		try (FileWriter writer = new FileWriter("scoreHistory.ser", true)) {
+			writer.write("\nEl jugador: '"+playerName+"' obtuvo un puntaje: '"+score+"' En el modo: "+difficulty+" "+localDateTime);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void sameDirection() {
 		direction = proxDirection;
 	}
@@ -341,8 +392,5 @@ public class ViewSnakePanel extends JPanel {
 	public int getChangeColor() {
 		return changeColor;
 	}
-	
-	
-	
-	
+
 }

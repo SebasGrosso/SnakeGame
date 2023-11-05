@@ -4,9 +4,11 @@ public class ViewThreadObstacle2 extends Thread {
 	
 	private ViewSnakePanel panel;
 	private boolean state;
+	private int time;
 
-	public ViewThreadObstacle2(ViewSnakePanel panel) {
+	public ViewThreadObstacle2(ViewSnakePanel panel, int time) {
 		this.panel = panel;
+		this.time = time;
 		state = true;
 	}
 
@@ -16,7 +18,7 @@ public class ViewThreadObstacle2 extends Thread {
 			panel.generateObstacle2();
 			panel.repaint();
 			try {
-				Thread.sleep(8000);
+				Thread.sleep(time);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
